@@ -5,7 +5,7 @@ import pendulum
 
 with DAG(
     dag_id='example_bash_operator',
-    schedule='0 0 * * *",
+    schedule='30 12 * * *',
     start_date=pendulum.datetime(2025, 10, 9, tz='Asia/Seoul'),
     catchup=False,   # the time period between current and the start_date will not be run
     # dagrun_timeout=datetime.timedelta(minutes=60),
