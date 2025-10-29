@@ -76,24 +76,26 @@ x-airflow-common:
     - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
     - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
     - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
-    - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
-  user: "${AIRFLOW_UID:-50000}:0"
+    - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins 
+  user: "${AIRFLOW_UID:-50000}:0"   # "User ID:Group ID"
   depends_on:
     &airflow-common-depends-on
     redis:
       condition: service_healthy
     postgres:
       condition: service_healthy
-
+    
 services:
-  postgres:
+  postgres:    # Airflow connection host name
     image: postgres:13
     environment:
-      POSTGRES_USER: airflow
-      POSTGRES_PASSWORD: airflow
+      POSTGRES_USER: airflow      # Needed for db connection
+      POSTGRES_PASSWORD: airflow  # Needed for db connection
       POSTGRES_DB: airflow
     volumes:
       - postgres-db-volume:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"   # Added
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "airflow"]
       interval: 10s
