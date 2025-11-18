@@ -1,0 +1,12 @@
+# Command to run MinIO server with Docker
+docker run \
+-p 9000:9000 \
+-p 9001:9001 \
+--name minio \
+-v $HOME/minio/data:/data \
+-e "MINIO_ROOT_USER=miniouser" \
+-e "MINIO_ROOT_PASSWORD=miniopassword" \
+quay.io/minio/minio server /data --console-address ":9001"
+
+# -v: To make the volume persistent
+# --name: Container name
