@@ -3,7 +3,7 @@ import logging
 
 from datetime import datetime, timedelta
 import pendulum
-from tempfile import NamedTemporaryfile
+from tempfile import NamedTemporaryFile
 
 from airflow import DAG
 from airflow.operators.python import PythonOperator
@@ -30,29 +30,31 @@ def postgres_to_s3(ds, data_interval_end, ds_nodash):
         """
     )
     # The file path is Airflow container directory. Make sure the path exists.
-    with NamedTemporaryfile(mode='w', suffix=f'{ds_nodash}') as f:
     # with open(f'dags/get_orders_{ds_nodash}.txt', 'w') as f:
+    # To avoid having multiple files in local directory, use a temporary file.
+    with NamedTemporaryFile(mode='w', suffix=f'{ds_nodash}') as f:
         csv_writer = csv.writer(f)
         csv_writer.writerow([i.name for i in cursor.description])   # cursor.description: column names
         csv_writer.writerows(cursor)
-        f.flush()    # Save data from buffer to the file while the file is still open.
-    cursor.close()
-    conn.close() 
-    logging.info(f"Saved query results in get_orders_{ds_nodash}.txt")
+        f.flush()    # Save data from buffer to the file (disk) while the file is still open.
+        cursor.close()
+        conn.close() 
+        logging.info(f"Saved query results in get_orders_{ds_nodash}.txt")
 
-    # step 2: upload the file to S3 bucket
-    # For MinIO connection, docker network connection between Airflow and MinIO should be set.
-    s3_hook = S3Hook(aws_conn_id='minio_conn')
-    s3_hook.load_file(
-        filename=f'dags/get_orders_{ds_nodash}.txt',
-        bucket_name = 'airflow',
-        key=f'orders/{ds_nodash}.txt',
-        replace=True
-    )
+        # step 2: upload the file to S3 bucket
+        # For MinIO connection, docker network connection between Airflow and MinIO should be set.
+        s3_hook = S3Hook(aws_conn_id='minio_conn')
+        s3_hook.load_file(
+            filename=f.name,
+            bucket_name = 'airflow',
+            key=f'orders/{ds_nodash}.txt',
+            replace=True
+        )
+        logging.info(f"Order file {f.name} has been uploaded to S3.")
     
 with DAG(
     default_args=default_args,
-    dag_id='dag_with_postgres_hooks_v03',
+    dag_id='dag_with_postgres_hooks_v04',
     start_date=pendulum.datetime(2025, 11, 18, tz='Asia/Seoul'),
     schedule='@daily'
 ) as dag:
