@@ -18,6 +18,18 @@ For example, to see what airflow provider version is installed,
 pip list | grep airflow
 ```
 
+## How to Set UP the Postgres Connection
+### In DBeaver
+The database should be one of the existing databases under the connection, which is either airflow or postgres when first creating connection.
+```
+Host: localhost
+Database: airflow or postgres (case sensitive)
+```
+### In Airflow Connection
+```
+Host: postgres
+```
+
 ## How to Set Up the MinIO Connection in Airflow
 ### Network Connection
 MinIO doesn't require installation or download. Acess ID and password can be set as you wish [[ref](MINIO_run)]. Running the image in docker suffices.
